@@ -1,8 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
+import {ProductsService} from '../../services/products.service'
+import { CreateProductDTO } from '../../DTO/products/createProducts.DTO';
+import { UpdateProductDTO } from 'src/DTO/products/updateProducts.DTO';
 @Controller('products')
 export class ProductsController {
-    
+  constructor(private productsService: ProductsService){}
+
   @Get('filter')
   getProductsFilter() {
     return `yo soy un filter`;
@@ -10,7 +14,8 @@ export class ProductsController {
   
   @Get(':productId')
   getProducts(@Param('productId') productId: string) {
-    return `product ${productId}`;
+    //return `product ${productId}`;
+    return this.productsService.findOne(+productId)
   }
 
 
@@ -27,15 +32,32 @@ export class ProductsController {
     @Query('ofset') offset = 0, 
     @Query('brand') brand: string,
   ) {
-    return `products: limit => ${limit} offset =>  ${offset} brand => ${brand}`;
+    //return `products: limit => ${limit} offset =>  ${offset} brand => ${brand}`;
+    return this.productsService.findAll();
   }
 
   @Post('/save')
-  create(@Body() productBody: any){
-    return {
+  @HttpCode(HttpStatus.ACCEPTED)
+  /* create(@Res() response: Response, @Body() productBody: any){
+    response.status(200).send({
       status: 'success',
       message: 'accion de crear',
       productBody
+    }) */
+  create(@Body() productBody: CreateProductDTO){
+    return this.productsService.create(productBody);
+  }
+
+  @Put('/update/:id')
+  update(@Param('id') id: number, @Body() productBody: UpdateProductDTO) {
+    return this.productsService.update(id, productBody);
+  }
+
+  @Delete('/delete/:id')
+  remove(@Param('id') id: number) {
+    return {
+        status: 'Success',
+        message: 'Datos eliminados correctamente'
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
@@ -13,6 +13,24 @@ export class UsersController {
             status: 'Success',
             message: 'Usuario creado correctamente',
             userBody
+        }
+    }
+
+    @Put('/update/:id')
+    update(@Param('id') id: number, @Body() userBody: any) {
+        return {
+            id,
+            status: 'Success',
+            message: 'Datos del usuario actualizado',
+            userBody
+        }
+    }
+
+    @Delete('/delete/:id')
+    remove(@Param('id') id: number) {
+        return {
+            status: 'Success',
+            message: 'Datos eliminados correctamente'
         }
     }
 }

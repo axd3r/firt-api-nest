@@ -7,10 +7,11 @@ import { UsersController } from './controllers/users/users.controller';
 import { OrdersController } from './controllers/orders/orders.controller';
 import { CustomersController } from './controllers/customers/customers.controller';
 import { BrandsController } from './controllers/brands/brands.controller';
+import { ProductsService } from './services/products.service';
 
 @Module({
   imports: [],
   controllers: [AppController, ProductsController, CategoriesController, UsersController, OrdersController, CustomersController, BrandsController],
-  providers: [AppService],
+  providers: [AppService, ProductsService],
 })
 export class AppModule {}
