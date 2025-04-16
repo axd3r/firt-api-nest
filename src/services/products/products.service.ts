@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProductDTO } from '../DTO/products/createProducts.DTO';
-import { UpdateProductDTO } from '../DTO/products/updateProducts.DTO'
-import { Product } from 'src/entities/product.entity';
+import { CreateProductDTO } from 'src/DTO/products/createProducts.DTO';
+import { UpdateProductDTO } from 'src/DTO/products/updateProducts.DTO';
+import { Product } from 'src/entities/products/product.entity';
 
 @Injectable()
 export class ProductsService {
@@ -12,7 +12,10 @@ export class ProductsService {
         description: 'bla bla bla',
         price: 322,
         stock: 3,
-        image: 'defaul.png'
+        image: 'defaul.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
     }];
 
     findAll() {
@@ -28,9 +31,13 @@ export class ProductsService {
         const newProduct = {
             id: this.counterId,
             ...productBody,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            isActive: true,
+            
         }
         this.products.push(newProduct);
-        return newProduct
+        return newProduct;
     }
 
     update(id: number, productBody: UpdateProductDTO) {
@@ -39,13 +46,26 @@ export class ProductsService {
         if(!product) {
             return null;
         }
-
         const index = this.products.findIndex((item) => item.id === numericId);
+        if(index === -1){
+            throw new Error('Product not found');
+        }
         this.products[index] = {
             ...product,
             ...productBody
         };
         return this.products[index];
 
+    }
+
+    delete(id: number) {
+        const numericId = Number(id);
+        const productIndex = this.products.findIndex(product => product.id === numericId);
+
+        if (productIndex === -1) {
+            throw new Error('Product not found');
+        }
+
+        this.products.splice(productIndex, 1);
     }
 }

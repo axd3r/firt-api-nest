@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
-import {ProductsService} from '../../services/products.service'
+import { ProductsService } from 'src/services/products/products.service'; 
 import { CreateProductDTO } from '../../DTO/products/createProducts.DTO';
 import { UpdateProductDTO } from 'src/DTO/products/updateProducts.DTO';
 @Controller('products')
@@ -55,9 +55,11 @@ export class ProductsController {
 
   @Delete('/delete/:id')
   remove(@Param('id') id: number) {
+    this.productsService.delete(id);
+
     return {
-        status: 'Success',
-        message: 'Datos eliminados correctamente'
+      status: 'Success',
+      message: 'Registro elminado con exito'
     }
   }
 }
