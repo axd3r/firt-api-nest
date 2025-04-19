@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { UpdateCategoryDTO } from '../DTO/updateCategory.DTO'; 
 import { CategoriesService } from '../services/categories.service'; 
+import { CreateCategoryDTO } from '../DTO/createCategory.DTO';
 
 @Controller('categories')
 export class CategoriesController {
@@ -25,22 +26,14 @@ export class CategoriesController {
   @Get(':id') 
   findOne(@Param('id') id: number) {
     const category = this.categoryService.findOne(id);
-    return {
-      status: 'Success',
-      message: 'Datos encontrados con exito',
-      category
-    }
+    return category
   }
   
 
   @Post('/save')
-  create(@Body() categoryBody: any) {
+  create(@Body() categoryBody: CreateCategoryDTO) {
     const category = this.categoryService.create(categoryBody);
-    return {
-      status: 'Success',
-      message: 'Categoria creada correcatmente',
-      category
-    }
+    return category
   }
 
   @Put('/update/:id')

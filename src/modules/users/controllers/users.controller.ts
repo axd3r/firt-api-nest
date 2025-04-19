@@ -1,10 +1,16 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { UsersService } from '../services/users.service';
 
 @Controller('users')
 export class UsersController {
+    constructor(private userServices: UsersService){}
     @Get()
-    getUsers(): string {
-        return `Controlador de usuarios`;
+    getUsers() {
+        const userData = this.userServices.findAll();
+        return {
+            status: `Success`,
+            userData
+        };
     }
 
     @Post('/save')

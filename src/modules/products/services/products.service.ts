@@ -1,47 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDTO } from 'src/modules/products/DTO/createProducts.DTO'; 
 import { UpdateProductDTO } from 'src/modules/products/DTO/updateProducts.DTO'; 
 import { Product } from 'src/modules/products/entities/product.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { FilterQuery, Model } from 'mongoose';
+import { FilterProductsDTO } from '../DTO/filterProducts.DTO';
 
 @Injectable()
 export class ProductsService {
-    private counterId = 1
-    private products: Product[] = [{
-        id: 1,
-        name: 'Producto 1',
-        description: 'bla bla bla',
-        price: 322,
-        stock: 3,
-        image: 'defaul.png',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isActive: true,
-    }];
+    constructor(
+        @InjectModel(Product.name) private productModel: Model<Product>,
+    ) {}
 
-    findAll() {
-        return this.products;
-    }
-
-    findOne(id: number) {
-        return this.products.find((item) => item.id === id);
-    }
-
-    create(productBody: CreateProductDTO) {
-        this.counterId = this.counterId + 1;
-        const newProduct = {
-            id: this.counterId,
-            ...productBody,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            isActive: true,
-            
+    findAll(params?: FilterProductsDTO) {
+        if(params){
+            const filters: FilterQuery<Product>= {};
+            const {limit, offset} = params;
+            const {minPrice, maxPrice} = params;
+            if (minPrice && maxPrice) {
+                filters.price = { $gte: minPrice, $lte: maxPrice };
+            }
+            return this.productModel.find(filters).skip(offset).limit(limit).exec()
         }
-        this.products.push(newProduct);
-        return newProduct;
+        return this.productModel.find().exec();
     }
 
+    async findOne(id: string) {
+        const products =  await this.productModel.findById(id).exec();
+        if(!products) {
+            throw new NotFoundException(`${id} not found`);
+        }
+        return products;
+    }
+
+    async create(productBody: CreateProductDTO) {
+        const product = await this.productModel.create(productBody);
+        return product;
+    }
+/*  Update, para empezar, guardado de datos en memoria
     update(id: number, productBody: UpdateProductDTO) {
-        const numericId = Number(id);
         const product = this.findOne(numericId);
         if(!product) {
             return null;
@@ -55,9 +52,16 @@ export class ProductsService {
             ...productBody
         };
         return this.products[index];
-
+    } */
+    async update(id: string, productBody: UpdateProductDTO) {
+        const product = await this.productModel.findByIdAndUpdate(id, productBody,{ new: true });
+        if(!product) {
+            throw new NotFoundException(`Product #${id} not found`);
+        } 
+        return product;
     }
 
+/*  Delete, para empezar, eliminado en memoria
     delete(id: number) {
         const numericId = Number(id);
         const productIndex = this.products.findIndex(product => product.id === numericId);
@@ -67,5 +71,8 @@ export class ProductsService {
         }
 
         this.products.splice(productIndex, 1);
-    }
+    } */
+   async delete(id: string) {
+        return await this.productModel.findByIdAndDelete(id);
+   }
 }

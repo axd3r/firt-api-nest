@@ -20,6 +20,11 @@ export class AppController {
     return 'con/sas/';
   }
 
+  @Get('/tasks/')
+  getTasks() {
+    return this.appService.getTask();
+  }
+
 /* 
   @Get('/products/filter')
   getProductsFilter() {

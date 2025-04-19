@@ -1,7 +1,5 @@
-import { IsOptional, IsEnum } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { CreateOrderDTO } from './createOrder.DTO';
 
-export class UpdateOrderDTO {
-  @IsOptional()
-  @IsEnum(['pending', 'paid', 'shipped', 'cancelled'])
-  readonly status?: 'pending' | 'paid' | 'shipped' | 'cancelled';
-}
+export class UpdateOrderDTO extends PartialType(CreateOrderDTO){}
+
