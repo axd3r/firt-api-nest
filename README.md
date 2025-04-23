@@ -8,6 +8,12 @@
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
   <p align="center">An API built with NestJS to manage orders, customers, products, and order items using MongoDB as the database.</p>
 
+## ✍️ Author
+
+**Joaquin Orihuela**  
+Versión: `0.0.1`  
+Licencia: `UNLICENSED`
+
 ## Features
 
 - Create, update, delete and list orders
