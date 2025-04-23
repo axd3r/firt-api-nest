@@ -13,7 +13,7 @@ export class BrandsController {
     }
 
     @Get('/:id')
-    findOne(@Param('id') id: number) {
+    findOne(@Param('id') id: string) {
         return this.brandService.findOne(id);
     }
 
@@ -23,16 +23,12 @@ export class BrandsController {
     }
 
     @Put('/update/:id')
-    update(@Param('id') id: number, @Body() body: UpdateBrandDTO) {
+    update(@Param('id') id: string, @Body() body: UpdateBrandDTO) {
         return this.brandService.update(id, body)
     }
 
     @Delete('/delete/:id')
-    remove(@Param('id') id: number) {
-        this.brandService.delete(id)
-        return {
-            status: 'Success',
-            message: 'Registro eliminado con exito'
-        }
+    remove(@Param('id') id: string) {
+        return this.brandService.delete(id)
     }
 }

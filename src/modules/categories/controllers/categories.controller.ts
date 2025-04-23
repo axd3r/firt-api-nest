@@ -5,7 +5,7 @@ import { CreateCategoryDTO } from '../DTO/createCategory.DTO';
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private categoryService: CategoriesService) { }
+  constructor(private readonly categoryService: CategoriesService) { }
 
   @Get(':categoryId/products/:productId')
   getCategory(@Param('productId') productId: string,
@@ -16,42 +16,27 @@ export class CategoriesController {
 
   @Get('/')
   findAll() {
-    const category = this.categoryService.findAll();
-    return {
-      status: 'Success',
-      category
-    }
+    return this.categoryService.findAll();
   }
 
-  @Get(':id') 
-  findOne(@Param('id') id: number) {
-    const category = this.categoryService.findOne(id);
-    return category
+  @Get('/:id') 
+  findOne(@Param('id') id: string) {
+    return this.categoryService.findOne(id);
   }
   
 
   @Post('/save')
   create(@Body() categoryBody: CreateCategoryDTO) {
-    const category = this.categoryService.create(categoryBody);
-    return category
+    return this.categoryService.create(categoryBody);
   }
 
   @Put('/update/:id')
-  update(@Param('id') id: number, @Body() categoryBody: UpdateCategoryDTO) {
-    const category = this.categoryService.update(id, categoryBody);
-    return {
-      status: 'Success',
-      message: 'Registro actualizado correctamente',
-      category
-    }
+  update(@Param('id') id: string, @Body() categoryBody: UpdateCategoryDTO) {
+    return this.categoryService.update(id, categoryBody);
   }
 
   @Delete('/delete/:id')
-  remove(@Param('id') id: number) {
-    this.categoryService.delete(id);
-    return {
-      status: 'Success',
-      message: 'Registro eliminado correctamente'
-    }
+  remove(@Param('id') id: string) {
+    return this.categoryService.delete(id);
   }
 }

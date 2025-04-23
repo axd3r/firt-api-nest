@@ -1,12 +1,10 @@
-import { IsNotEmpty, IsNumber, IsArray, ValidateNested, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsMongoId, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateOrderItemDTO {
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  readonly productId: number;
+  @ApiProperty({ type: String })
+  @IsMongoId()
+  readonly product: string;
 
   @ApiProperty()
   @IsNumber()

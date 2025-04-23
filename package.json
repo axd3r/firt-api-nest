@@ -1,8 +1,8 @@
 {
   "name": "firt-api-nest",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "First Api Rest 'Shop' with nestjs",
+  "author": "Joaquin Orihuela",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

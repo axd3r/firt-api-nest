@@ -1,106 +1,118 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Order } from 'src/modules/orders/entities/order.entity';
-import { OrderItem } from 'src/modules/orders/entities/ordersItems/orderItem.entity';
-import { CreateOrderDTO } from '../DTO/createOrder.DTO'; 
-import { UpdateOrderDTO } from '../DTO/updateOrder.DTO'; 
-import { AddProductToOrderDTO } from '../DTO/addProductToOrder.DTO'; 
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { Order } from '../entities/order.entity';
+import { CreateOrderDTO } from '../DTO/createOrder.DTO';
+import { UpdateOrderDTO } from '../DTO/updateOrder.DTO';
+import { AddProductToOrderDTO } from '../DTO/addProductToOrder.DTO';
+import { OrderItem } from '../entities/ordersItems/orderItem.entity';
+import { Product } from 'src/modules/products/entities/product.entity';
 
 @Injectable()
 export class OrdersService {
-  private counterId = 1;
-  private orders: Order[] = [
-    {
-      id: 1,
-      customerId: 101,
-      products: [
-        {
-          productId: 1,
-          quantity: 2,
-          price: 150,
-        },
-        {
-          productId: 3,
-          quantity: 1,
-          price: 250,
-        },
-      ],
-      total: 150 * 2 + 250,
-      createdAt: new Date('2025-04-01T10:00:00Z'),
-      updatedAt: new Date('2025-04-01T10:00:00Z'),
-      status: 'pending',
-    },
-  ];
+  private async calculateTotal(productIds: Types.ObjectId[]): Promise<number> {
+    const items = await this.orderItemModel.find({ _id: { $in: productIds } });
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }
 
-  create(data: CreateOrderDTO): Order {
-    this.counterId = this.counterId + 1;
-    const total = data.products.reduce(
+  constructor(
+    @InjectModel(Order.name) private readonly orderModel: Model<Order>,
+    @InjectModel(OrderItem.name) private readonly orderItemModel: Model<OrderItem>,
+    @InjectModel(Product.name) private readonly productModel: Model<Product>,
+
+  ) { }
+
+  async create(data: CreateOrderDTO) {
+    const items = await Promise.all(
+      data.products.map(async (item) => {
+        const newItem = new this.orderItemModel(item);
+        return await newItem.save();
+      }),
+    );
+
+    const total = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
 
-    const newOrder: Order = {
-      id: this.counterId,
-      customerId: data.customerId,
-      products: data.products,
+    const newOrder = new this.orderModel({
+      customer: data.customer,
+      products: items.map((i) => i._id),
       total,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      status: 'pending',
-    };
+      status: data.status || 'pending',
+    });
 
-    this.orders.push(newOrder);
-    return newOrder;
+    return await newOrder.save();
   }
 
-  findAll(): Order[] {
-    return this.orders;
+
+  async findAll() {
+    return this.orderModel.find().populate('customer', '_id name DNI phone').select('-__v').exec();
   }
 
-  findOne(id: number) {
-    const numericId = Number(id);
-    const order = this.orders.find((item) => item.id === numericId);
-    console.log(order);
-    
+  async findOne(id: string) {
+    const order = await this.orderModel.findById(id)
+                        .populate('customer', '-user -birthDate -createdAt -updatedAt -__v')
+                        .populate({
+                          path: 'products', select: 'product quantity price',
+                          populate: {
+                            path: 'product',
+                            model: 'Product',
+                            select: 'name'
+                          }
+                        }).select('-__v')
+                        .exec();
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
     return order;
   }
 
-  update(id: number, changes: UpdateOrderDTO): Order {
-    const order = this.findOne(id);
-
-    if (changes.status) {
-      order.status = changes.status;
+  async update(id: string, changes: UpdateOrderDTO) {
+    const order = await this.orderModel.findByIdAndUpdate(
+      id,
+      { ...changes },
+      { new: true },
+    );
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
-
-    order.updatedAt = new Date();
     return order;
   }
 
-  addProduct(id: number, data: AddProductToOrderDTO): Order {
-    const numberId = Number(id);
-    const order = this.findOne(numberId);
+  async addProduct(id: string, data: AddProductToOrderDTO){
+    const order = await this.findOne(id);
 
-    const item: OrderItem = {
-      productId: data.productId,
+    const product = await this.productModel.findById(data.product);
+    if (!product) {
+      throw new NotFoundException(`Product with id ${data.product} not found`);
+    }
+
+    const newItem = new this.orderItemModel({
+      product: data.product,
       quantity: data.quantity,
-      price: data.price,
-    };
+      price: product.price,
+    });
+    const savedItem = await newItem.save();
 
-    order.products.push(item);
-    order.total += item.price * item.quantity;
-    order.updatedAt = new Date();
+    const itemId = (savedItem.toObject() as { _id: Types.ObjectId })._id;
+    order.products.push(itemId);
 
-    return order;
+    order.total = await this.calculateTotal(order.products);
+
+    return await order.save();
   }
 
-  delete(id: number): void {
-    const numberId = Number(id);
-    const index = this.orders.findIndex((order) => order.id === numberId);
-    if (index === -1) {
-      throw new NotFoundException('Order not found');
+
+
+  async delete(id: string) {
+    const result = await this.orderModel.findByIdAndDelete(id);
+    if (!result) {
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
-    this.orders.splice(index, 1);
+    return {
+      status: "success",
+      message: "Registro eliminado con exito"
+    }
   }
 }

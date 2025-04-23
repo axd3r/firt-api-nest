@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
+import { IsBoolean, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateCategoryDTO } from "src/modules/categories/DTO/createCategory.DTO";
 
@@ -38,4 +38,7 @@ export class CreateProductDTO {
     @ValidateNested()
     @IsNotEmpty()
     readonly category: CreateCategoryDTO;
+
+    @IsMongoId()
+    readonly brand: string;
 }
